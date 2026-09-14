@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ethereal Tokens</title>
+<style>
+:root{
+  --bg:#080811;--panel:#111124;--panel2:#171733;--border:#2b2a52;
+  --text:#f5f4ff;--muted:#aaa8ca;--purple:#8b5cf6;--cyan:#22d3ee;
+  --danger:#fb7185;--success:#34d399;--shadow:0 18px 55px #0005;
+}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(circle at top right,#24134b 0,#080811 42%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input,textarea,select{font:inherit}
+button{cursor:pointer}
+a{color:inherit;text-decoration:none}
+.shell{max-width:1250px;margin:auto;padding:20px}
+.nav{display:flex;align-items:center;justify-content:space-between;gap:15px;padding:12px 0 28px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:900;font-size:1.2rem}
+.logo{width:42px;height:42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,var(--purple),var(--cyan));box-shadow:0 0 30px #8b5cf655}
+.nav-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{border:1px solid var(--border);background:#171733;color:var(--text);padding:10px 15px;border-radius:12px;transition:.2s}
+.btn:hover{transform:translateY(-1px);border-color:#7568d9}
+.btn.primary{border:0;background:linear-gradient(135deg,var(--purple),#5b5ce2)}
+.btn.success{background:#123b32;border-color:#1d765c;color:#9af2d0}
+.btn.danger{background:#3c1828;border-color:#75334a;color:#ffb0be}
+.btn.small{padding:7px 10px;font-size:.85rem}
+.hero{padding:60px 0 45px;display:grid;grid-template-columns:1.3fr .7fr;gap:30px;align-items:center}
+.eyebrow{color:var(--cyan);font-weight:800;text-transform:uppercase;letter-spacing:.14em;font-size:.78rem}
+h1{font-size:clamp(2.5rem,6vw,5.5rem);line-height:.95;margin:14px 0 20px;letter-spacing:-.07em}
+h2{margin:0 0 16px;font-size:1.55rem}
+h3{margin:0 0 8px}
+p{color:var(--muted);line-height:1.65}
+.hero p{max-width:650px;font-size:1.08rem}
+.hero-card{background:linear-gradient(145deg,#211c4b,#101023);border:1px solid #39336e;border-radius:26px;padding:26px;box-shadow:var(--shadow)}
+.orb{height:240px;border-radius:22px;background:radial-gradient(circle at 50% 40%,#b9f8ff 0 2%,#45d7e9 4%,#785cf5 22%,#20154b 48%,#0b0b18 72%);display:grid;place-items:center;position:relative;overflow:hidden}
+.orb:after{content:"";position:absolute;width:150%;height:2px;background:#fff8;transform:rotate(-25deg);box-shadow:0 55px #fff3,0 -55px #fff3}
+.orb span{position:relative;z-index:1;font-size:3rem;font-weight:1000;color:white;text-shadow:0 0 25px #fff}
+.section{margin:35px 0}
+.toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+.search{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:12px;padding:11px 14px;min-width:240px;outline:none}
+.search:focus,input:focus,textarea:focus,select:focus{border-color:var(--cyan);box-shadow:0 0 0 3px #22d3ee22}
+.filters{display:flex;gap:8px;flex-wrap:wrap}
+.filter{border:1px solid var(--border);background:transparent;color:var(--muted);padding:8px 12px;border-radius:999px}
+.filter.active{background:#30245d;color:white;border-color:#8068ed}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:linear-gradient(145deg,#15152d,#0e0e1e);border:1px solid var(--border);border-radius:18px;padding:18px;box-shadow:0 10px 35px #0002}
+.product-image{height:145px;border-radius:13px;background:linear-gradient(135deg,#32206a,#0e697b);display:grid;place-items:center;font-size:2.7rem;margin-bottom:15px}
+.meta{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.tag{font-size:.73rem;color:#bcefff;background:#123c4b;border:1px solid #1b687d;padding:4px 8px;border-radius:999px}
+.price{font-size:1.25rem;font-weight:900;color:#fff}
+.card-actions{display:flex;gap:8px;margin-top:15px}
+.card-actions .btn{flex:1}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.stat strong{display:block;font-size:1.7rem;margin-top:8px}
+.stat span{color:var(--muted);font-size:.85rem}
+.hidden{display:none!important}
+.dashboard{display:none}
+.dashboard.active{display:block}
+.storefront.hidden-view{display:none}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:18px;padding:20px}
+.dashboard-layout{display:grid;grid-template-columns:220px 1fr;gap:18px}
+.sidebar{display:flex;flex-direction:column;gap:8px;height:max-content;position:sticky;top:15px}
+.side-btn{text-align:left;background:transparent;border:1px solid transparent;color:var(--muted);padding:12px;border-radius:10px}
+.side-btn.active,.side-btn:hover{background:#242044;color:white;border-color:#3e3670}
+.dashboard-main{min-width:0}
+.dash-section{display:none}
+.dash-section.active{display:block}
+.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.field{display:flex;flex-direction:column;gap:7px}
+.field.full{grid-column:1/-1}
+label{font-size:.85rem;color:var(--muted)}
+input,textarea,select{width:100%;background:#0b0b18;border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px;outline:none}
+textarea{min-height:105px;resize:vertical}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:650px}
+th,td{text-align:left;padding:13px 10px;border-bottom:1px solid var(--border);font-size:.9rem}
+th{color:var(--muted);font-weight:600}
+.status{display:inline-block;padding:5px 8px;border-radius:999px;font-size:.75rem}
+.status.paid,.status.fulfilled{background:#123b32;color:#8ff0cb}
+.status.pending{background:#443514;color:#ffd98a}
+.status.cancelled{background:#421b2a;color:#ffafbf}
+.modal-backdrop{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:20px;z-index:10}
+.modal-backdrop.open{display:flex}
+.modal{width:min(620px,100%);max-height:90vh;overflow:auto;background:#121225;border:1px solid var(--border);border-radius:20px;padding:22px;box-shadow:var(--shadow)}
+.modal-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:15px}
+.close{background:transparent;border:0;color:var(--muted);font-size:1.5rem}
+.cart-row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);padding:12px 0}
+.qty{display:flex;gap:7px;align-items:center}
+.notice{padding:13px;border-radius:12px;background:#18213d;border:1px solid #2d4c83;color:#c7dcff;margin-bottom:15px}
+.footer{padding:45px 0 20px;color:var(--muted);font-size:.85rem;text-align:center}
+@media(max-width:850px){.hero{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}.dashboard-layout{grid-template-columns:1fr}.sidebar{position:static;display:grid;grid-template-columns:repeat(3,1fr)}.side-btn{text-align:center}.stats{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.shell{padding:15px}.grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}.field.full{grid-column:auto}.hero{padding-top:35px}.sidebar{grid-template-columns:repeat(2,1fr)}h1{font-size:3.2rem}.nav{align-items:flex-start;flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="nav">
+    <a class="brand" href="#" onclick="showStore()"><span class="logo">✦</span> Ethereal Tokens</a>
+    <div class="nav-actions">
+      <button class="btn" onclick="showStore()">Storefront</button>
+      <button class="btn" onclick="openCart()">Cart <span id="cartCount">0</span></button>
+      <button class="btn primary" onclick="showDashboard()">Admin Dashboard</button>
+    </div>
+  </header>
+
+  <main id="storefront" class="storefront">
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Instant digital delivery</div>
+        <h1>Power up your digital world.</h1>
+        <p>Buy in-game currency, digital products, creator assets, and custom digital services from Ethereal Tokens.</p>
+        <div class="nav-actions">
+          <button class="btn primary" onclick="document.getElementById('store').scrollIntoView({behavior:'smooth'})">Browse Store</button>
+          <button class="btn" onclick="showDashboard()">Manage Products</button>
+        </div>
+      </div>
+      <div class="hero-card"><div class="orb"><span>ET</span></div></div>
+    </section>
+
+    <section class="section">
+      <div class="stats">
+        <div class="card stat"><span>Products</span><strong id="statProducts">0</strong></div>
+        <div class="card stat"><span>Categories</span><strong>3</strong></div>
+        <div class="card stat"><span>Delivery</span><strong>Fast</strong></div>
+        <div class="card stat"><span>Support</span><strong>24/7</strong></div>
+      </div>
+    </section>
+
+    <section class="section" id="store">
+      <div class="toolbar">
+        <div>
+          <h2>Featured products</h2>
+          <p>Choose a category or search for an item.</p>
+        </div>
+        <input id="search" class="search" placeholder="Search products..." oninput="renderProducts()">
+      </div>
+      <div class="filters" id="filters"></div>
+      <div class="grid" id="productGrid"></div>
+    </section>
+
+    <section class="section">
+      <div class="grid">
+        <div class="card"><h3>Secure checkout</h3><p>Use approved payment providers and protected checkout pages.</p></div>
+        <div class="card"><h3>Quick fulfillment</h3><p>Orders can be reviewed and fulfilled from your private dashboard.</p></div>
+        <div class="card"><h3>Built to grow</h3><p>Add products, update prices, and manage inventory whenever you want.</p></div>
+      </div>
+    </section>
+  </main>
+
+  <main id="dashboard" class="dashboard">
+    <div class="toolbar">
+      <div><div class="eyebrow">Private control center</div><h2>Store Dashboard</h2><p>Manage your Ethereal Tokens catalog and orders.</p></div>
+      <button class="btn" onclick="showStore()">← Back to Store</button>
+    </div>
+    <div class="dashboard-layout">
+      <aside class="sidebar">
+        <button class="side-btn active" onclick="dashTab('overview',this)">Overview</button>
+        <button class="side-btn" onclick="dashTab('products',this)">Products</button>
+        <button class="side-btn" onclick="dashTab('orders',this)">Orders</button>
+        <button class="side-btn" onclick="dashTab('payments',this)">Payments</button>
+        <button class="side-btn" onclick="dashTab('settings',this)">Settings</button>
+      </aside>
+      <section class="dashboard-main">
+        <div id="overview" class="dash-section active">
+          <div class="stats">
+            <div class="card stat"><span>Total products</span><strong id="dashProducts">0</strong></div>
+            <div class="card stat"><span>Total orders</span><strong id="dashOrders">0</strong></div>
+            <div class="card stat"><span>Paid orders</span><strong id="dashPaid">0</strong></div>
+            <div class="card stat"><span>Revenue</span><strong id="dashRevenue">$0.00</strong></div>
+          </div>
+          <div class="panel" style="margin-top:18px"><h3>Getting started</h3><p>Add products from the Products tab. This prototype stores changes in your browser. A production version should connect to Supabase or another hosted database before accepting real orders.</p></div>
+        </div>
+
+        <div id="products" class="dash-section">
+          <div class="toolbar"><div><h3>Products</h3><p>Create and manage your catalog.</p></div><button class="btn primary" onclick="openProductModal()">+ Add Product</button></div>
+          <div class="panel table-wrap"><table><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Visible</th><th>Actions</th></tr></thead><tbody id="productTable"></tbody></table></div>
+        </div>
+
+        <div id="orders" class="dash-section">
+          <div class="toolbar"><div><h3>Orders</h3><p>Review and update order status.</p></div></div>
+          <div class="panel table-wrap"><table><thead><tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Payment</th><th>Fulfillment</th></tr></thead><tbody id="orderTable"></tbody></table></div>
+        </div>
+
+        <div id="payments" class="dash-section">
+          <div class="panel">
+            <h3>Payment configuration</h3>
+            <div class="notice">These fields are configuration notes only. Do not place private API keys in this browser file. Real payment processing requires a secure backend and an approved merchant account.</div>
+            <div class="form-grid">
+              <div class="field"><label>Venmo business username</label><input id="venmoSetting" placeholder="@your-business"></div>
+              <div class="field"><label>Crypto wallet label</label><input id="cryptoSetting" placeholder="USDC / BTC / ETH wallet"></div>
+              <div class="field full"><label>Checkout instructions</label><textarea id="paymentInstructions" placeholder="Instructions shown to customers after checkout..."></textarea></div>
+            </div>
+            <button class="btn primary" onclick="saveSettings()">Save Payment Settings</button>
+          </div>
+        </div>
+
+        <div id="settings" class="dash-section">
+          <div class="panel">
+            <h3>Store settings</h3>
+            <div class="form-grid">
+              <div class="field"><label>Store name</label><input id="storeName" value="Ethereal Tokens"></div>
+              <div class="field"><label>Support email</label><input id="supportEmail" placeholder="support@example.com"></div>
+              <div class="field full"><label>Store announcement</label><textarea id="announcement" placeholder="Welcome message shown on your store..."></textarea></div>
+            </div>
+            <button class="btn primary" onclick="saveSettings()">Save Settings</button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="footer">© 2026 Ethereal Tokens · Digital products storefront prototype</footer>
+</div>
+
+<div id="cartModal" class="modal-backdrop" onclick="backdropClose(event,'cartModal')">
+  <div class="modal">
+    <div class="modal-head"><h2>Your Cart</h2><button class="close" onclick="closeModal('cartModal')">×</button></div>
+    <div id="cartItems"></div>
+    <div class="toolbar" style="margin-top:18px"><strong>Total</strong><strong id="cartTotal">$0.00</strong></div>
+    <button class="btn primary" style="width:100%" onclick="checkout()">Demo Checkout</button>
+  </div>
+</div>
+
+<div id="productModal" class="modal-backdrop" onclick="backdropClose(event,'productModal')">
+  <div class="modal">
+    <div class="modal-head"><h2 id="productModalTitle">Add Product</h2><button class="close" onclick="closeModal('productModal')">×</button></div>
+    <input type="hidden" id="editId">
+    <div class="form-grid">
+      <div class="field"><label>Product name</label><input id="pName" required></div>
+      <div class="field"><label>Price</label><input id="pPrice" type="number" min="0" step="0.01"></div>
+      <div class="field"><label>Category</label><select id="pCategory"><option>In-Game Currency</option><option>Digital Products</option><option>Other Stuff</option></select></div>
+      <div class="field"><label>Stock</label><input id="pStock" type="number" min="0" value="999"></div>
+      <div class="field full"><label>Emoji / image placeholder</label><input id="pImage" placeholder="💎"></div>
+      <div class="field full"><label>Description</label><textarea id="pDescription"></textarea></div>
+    </div>
+    <div class="nav-actions" style="margin-top:18px"><button class="btn" onclick="closeModal('productModal')">Cancel</button><button class="btn primary" onclick="saveProduct()">Save Product</button></div>
+  </div>
+</div>
+
+<script>
+const defaultProducts=[
+{id:1,name:"Starter Token Pack",category:"In-Game Currency",price:4.99,stock:999,image:"💎",description:"A small starter bundle for everyday players.",visible:true},
+{id:2,name:"Elite Currency Bundle",category:"In-Game Currency",price:14.99,stock:250,image:"⚡",description:"A larger currency bundle for serious players.",visible:true},
+{id:3,name:"Creator Asset Pack",category:"Digital Products",price:9.99,stock:100,image:"🎨",description:"A collection of digital creator assets.",visible:true},
+{id:4,name:"Premium UI Kit",category:"Digital Products",price:12.50,stock:50,image:"🖥️",description:"Premium interface elements and design resources.",visible:true},
+{id:5,name:"Custom Digital Request",category:"Other Stuff",price:19.99,stock:25,image:"🛠️",description:"Request a custom digital product or service.",visible:true}
+];
+let products=JSON.parse(localStorage.getItem("et_products")||"null")||defaultProducts;
+let orders=JSON.parse(localStorage.getItem("et_orders")||"null")||[];
+let settings=JSON.parse(localStorage.getItem("et_settings")||"null")||{};
+let cart=[];
+let activeCategory="All Products";
+
+function money(n){return "$"+Number(n).toFixed(2)}
+function persist(){localStorage.setItem("et_products",JSON.stringify(products));localStorage.setItem("et_orders",JSON.stringify(orders));localStorage.setItem("et_settings",JSON.stringify(settings))}
+function showStore(){document.getElementById("storefront").classList.remove("hidden-view");document.getElementById("dashboard").classList.remove("active");renderProducts();window.scrollTo({top:0,behavior:"smooth"})}
+function showDashboard(){document.getElementById("storefront").classList.add("hidden-view");document.getElementById("dashboard").classList.add("active");renderDashboard();window.scrollTo({top:0,behavior:"smooth"})}
+function renderProducts(){
+ const categories=["All Products","In-Game Currency","Digital Products","Other Stuff"];
+ document.getElementById("filters").innerHTML=categories.map(c=>`<button class="filter ${activeCategory===c?"active":""}" onclick="activeCategory='${c}';renderProducts()">${c}</button>`).join("");
+ const q=(document.getElementById("search")?.value||"").toLowerCase();
+ const list=products.filter(p=>p.visible&&(activeCategory==="All Products"||p.category===activeCategory)&&(p.name+" "+p.description).toLowerCase().includes(q));
+ document.getElementById("productGrid").innerHTML=list.length?list.map(p=>`
+ <article class="card">
+  <div class="product-image">${p.image||"✦"}</div>
+  <div class="meta"><span class="tag">${p.category}</span><span class="price">${money(p.price)}</span></div>
+  <h3 style="margin-top:13px">${escapeHtml(p.name)}</h3><p>${escapeHtml(p.description)}</p>
+  <div class="card-actions"><button class="btn primary" onclick="addToCart(${p.id})">Add to Cart</button></div>
+ </article>`).join(""):`<div class="card" style="grid-column:1/-1"><h3>No products found</h3><p>Try another search or add a product from the dashboard.</p></div>`;
+ document.getElementById("statProducts").textContent=products.filter(p=>p.visible).length;
+ document.getElementById("cartCount").textContent=cart.reduce((a,x)=>a+x.qty,0);
+}
+function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function addToCart(id){let item=cart.find(x=>x.id===id);if(item)item.qty++;else cart.push({id,qty:1});renderProducts();openCart()}
+function openCart(){renderCart();document.getElementById("cartModal").classList.add("open")}
+function renderCart(){
+ const box=document.getElementById("cartItems");
+ if(!cart.length){box.innerHTML="<p>Your cart is empty.</p>";document.getElementById("cartTotal").textContent="$0.00";return}
+ box.innerHTML=cart.map(x=>{let p=products.find(p=>p.id===x.id);return `<div class="cart-row"><div><strong>${escapeHtml(p.name)}</strong><div style="color:var(--muted)">${money(p.price)} each</div></div><div class="qty"><button class="btn small" onclick="changeQty(${p.id},-1)">−</button><span>${x.qty}</span><button class="btn small" onclick="changeQty(${p.id},1)">+</button></div></div>`}).join("");
+ document.getElementById("cartTotal").textContent=money(cart.reduce((sum,x)=>sum+(products.find(p=>p.id===x.id).price*x.qty),0));
+}
+function changeQty(id,n){let x=cart.find(x=>x.id===id);x.qty+=n;if(x.qty<=0)cart=cart.filter(y=>y.id!==id);renderCart();renderProducts()}
+function checkout(){
+ if(!cart.length)return alert("Your cart is empty.");
+ const total=cart.reduce((sum,x)=>sum+(products.find(p=>p.id===x.id).price*x.qty),0);
+ const order={id:"ET-"+Date.now().toString().slice(-6),customer:"Demo Customer",items:cart.map(x=>({name:products.find(p=>p.id===x.id).name,qty:x.qty})),total,payment:"Pending",fulfillment:"Pending"};
+ orders.unshift(order);cart=[];persist();closeModal("cartModal");alert("Demo order created. In the production version, this button will open a real approved payment checkout.");renderProducts();
+}
+function closeModal(id){document.getElementById(id).classList.remove("open")}
+function backdropClose(e,id){if(e.target.id===id)closeModal(id)}
+function dashTab(id,btn){document.querySelectorAll(".dash-section").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll(".side-btn").forEach(x=>x.classList.remove("active"));btn.classList.add("active")}
+function renderDashboard(){
+ document.getElementById("dashProducts").textContent=products.length;
+ document.getElementById("dashOrders").textContent=orders.length;
+ document.getElementById("dashPaid").textContent=orders.filter(o=>o.payment==="Paid").length;
+ document.getElementById("dashRevenue").textContent=money(orders.filter(o=>o.payment==="Paid").reduce((a,o)=>a+o.total,0));
+ document.getElementById("productTable").innerHTML=products.map(p=>`<tr><td><strong>${escapeHtml(p.name)}</strong></td><td>${p.category}</td><td>${money(p.price)}</td><td>${p.stock}</td><td>${p.visible?"Yes":"No"}</td><td><button class="btn small" onclick="editProduct(${p.id})">Edit</button> <button class="btn small danger" onclick="deleteProduct(${p.id})">Delete</button></td></tr>`).join("");
+ document.getElementById("orderTable").innerHTML=orders.length?orders.map(o=>`<tr><td>${o.id}</td><td>${escapeHtml(o.customer)}</td><td>${o.items.map(i=>escapeHtml(i.name)+" × "+i.qty).join("<br>")}</td><td>${money(o.total)}</td><td><select onchange="updateOrder('${o.id}','payment',this.value)"><option ${o.payment==="Pending"?"selected":""}>Pending</option><option ${o.payment==="Paid"?"selected":""}>Paid</option><option ${o.payment==="Cancelled"?"selected":""}>Cancelled</option></select></td><td><select onchange="updateOrder('${o.id}','fulfillment',this.value)"><option ${o.fulfillment==="Pending"?"selected":""}>Pending</option><option ${o.fulfillment==="Fulfilled"?"selected":""}>Fulfilled</option></select></td></tr>`).join(""):`<tr><td colspan="6">No orders yet.</td></tr>`;
+ document.getElementById("venmoSetting").value=settings.venmo||"";document.getElementById("cryptoSetting").value=settings.crypto||"";document.getElementById("paymentInstructions").value=settings.instructions||"";document.getElementById("supportEmail").value=settings.email||"";document.getElementById("announcement").value=settings.announcement||"";
+}
+function openProductModal(p=null){
+ document.getElementById("productModalTitle").textContent=p?"Edit Product":"Add Product";document.getElementById("editId").value=p?p.id:"";document.getElementById("pName").value=p?.name||"";document.getElementById("pPrice").value=p?.price||"";document.getElementById("pCategory").value=p?.category||"In-Game Currency";document.getElementById("pStock").value=p?.stock??999;document.getElementById("pImage").value=p?.image||"✦";document.getElementById("pDescription").value=p?.description||"";document.getElementById("productModal").classList.add("open");
+}
+function editProduct(id){openProductModal(products.find(p=>p.id===id))}
+function saveProduct(){
+ const id=document.getElementById("editId").value;const data={name:document.getElementById("pName").value.trim(),price:Number(document.getElementById("pPrice").value||0),category:document.getElementById("pCategory").value,stock:Number(document.getElementById("pStock").value||0),image:document.getElementById("pImage").value||"✦",description:document.getElementById("pDescription").value.trim(),visible:true};
+ if(!data.name)return alert("Enter a product name.");
+ if(id){let index=products.findIndex(p=>p.id==id);data.id=Number(id);data.visible=products[index].visible;products[index]=data}else{data.id=Date.now();products.push(data)}
+ persist();closeModal("productModal");renderDashboard();renderProducts();
+}
+function deleteProduct(id){if(confirm("Delete this product?")){products=products.filter(p=>p.id!==id);persist();renderDashboard();renderProducts()}}
+function updateOrder(id,key,value){let o=orders.find(o=>o.id===id);if(o)o[key]=value;persist();renderDashboard()}
+function saveSettings(){settings={venmo:document.getElementById("venmoSetting").value,crypto:document.getElementById("cryptoSetting").value,instructions:document.getElementById("paymentInstructions").value,email:document.getElementById("supportEmail").value,announcement:document.getElementById("announcement").value};persist();alert("Settings saved in this browser.")}
+renderProducts();
+</script>
+</body>
+</html>
