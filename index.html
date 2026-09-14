@@ -240,80 +240,50 @@ th{color:var(--muted);font-weight:600}
 </div>
 
 <script>
+/* Supabase connection: publishable key only. Never place a service-role/secret key here. */
+const SUPABASE_URL="https://pkygmlppbecapofksult.supabase.co";
+const SUPABASE_KEY="sb_publishable_nNR7-XLHOSHb2fwMEGYPlQ_9h83Urg4";
 const defaultProducts=[
-{id:1,name:"Starter Token Pack",category:"In-Game Currency",price:4.99,stock:999,image:"💎",description:"A small starter bundle for everyday players.",visible:true},
-{id:2,name:"Elite Currency Bundle",category:"In-Game Currency",price:14.99,stock:250,image:"⚡",description:"A larger currency bundle for serious players.",visible:true},
-{id:3,name:"Creator Asset Pack",category:"Digital Products",price:9.99,stock:100,image:"🎨",description:"A collection of digital creator assets.",visible:true},
-{id:4,name:"Premium UI Kit",category:"Digital Products",price:12.50,stock:50,image:"🖥️",description:"Premium interface elements and design resources.",visible:true},
-{id:5,name:"Custom Digital Request",category:"Other Stuff",price:19.99,stock:25,image:"🛠️",description:"Request a custom digital product or service.",visible:true}
+{id:"demo-1",name:"Starter Token Pack",category:"In-Game Currency",price:4.99,stock:999,image:"💎",description:"A small starter bundle for everyday players.",visible:true},
+{id:"demo-2",name:"Elite Currency Bundle",category:"In-Game Currency",price:14.99,stock:250,image:"⚡",description:"A larger currency bundle for serious players.",visible:true},
+{id:"demo-3",name:"Creator Asset Pack",category:"Digital Products",price:9.99,stock:100,image:"🎨",description:"A collection of digital creator assets.",visible:true},
+{id:"demo-4",name:"Premium UI Kit",category:"Digital Products",price:12.50,stock:50,image:"🖥️",description:"Premium interface elements and design resources.",visible:true},
+{id:"demo-5",name:"Custom Digital Request",category:"Other Stuff",price:19.99,stock:25,image:"🛠️",description:"Request a custom digital product or service.",visible:true}
 ];
 let products=JSON.parse(localStorage.getItem("et_products")||"null")||defaultProducts;
 let orders=JSON.parse(localStorage.getItem("et_orders")||"null")||[];
 let settings=JSON.parse(localStorage.getItem("et_settings")||"null")||{};
-let cart=[];
-let activeCategory="All Products";
-
+let cart=[];let activeCategory="All Products";
 function money(n){return "$"+Number(n).toFixed(2)}
 function persist(){localStorage.setItem("et_products",JSON.stringify(products));localStorage.setItem("et_orders",JSON.stringify(orders));localStorage.setItem("et_settings",JSON.stringify(settings))}
+async function loadSupabaseProducts(){
+ try{
+  const r=await fetch(SUPABASE_URL+"/rest/v1/products?select=*&visible=eq.true&order=created_at.desc",{headers:{apikey:SUPABASE_KEY,Authorization:"Bearer "+SUPABASE_KEY}});
+  if(!r.ok)throw new Error("Supabase request failed");
+  const rows=await r.json();
+  if(rows.length){products=rows.map(p=>({id:p.id,name:p.name,category:p.category,description:p.description||"",price:Number(p.price),stock:Number(p.stock),image:p.image_url||"✦",visible:p.visible}));renderProducts();}
+ }catch(e){console.warn("Supabase products unavailable; using local demo products.",e)}
+}
 function showStore(){document.getElementById("storefront").classList.remove("hidden-view");document.getElementById("dashboard").classList.remove("active");renderProducts();window.scrollTo({top:0,behavior:"smooth"})}
 function showDashboard(){document.getElementById("storefront").classList.add("hidden-view");document.getElementById("dashboard").classList.add("active");renderDashboard();window.scrollTo({top:0,behavior:"smooth"})}
-function renderProducts(){
- const categories=["All Products","In-Game Currency","Digital Products","Other Stuff"];
- document.getElementById("filters").innerHTML=categories.map(c=>`<button class="filter ${activeCategory===c?"active":""}" onclick="activeCategory='${c}';renderProducts()">${c}</button>`).join("");
- const q=(document.getElementById("search")?.value||"").toLowerCase();
- const list=products.filter(p=>p.visible&&(activeCategory==="All Products"||p.category===activeCategory)&&(p.name+" "+p.description).toLowerCase().includes(q));
- document.getElementById("productGrid").innerHTML=list.length?list.map(p=>`
- <article class="card">
-  <div class="product-image">${p.image||"✦"}</div>
-  <div class="meta"><span class="tag">${p.category}</span><span class="price">${money(p.price)}</span></div>
-  <h3 style="margin-top:13px">${escapeHtml(p.name)}</h3><p>${escapeHtml(p.description)}</p>
-  <div class="card-actions"><button class="btn primary" onclick="addToCart(${p.id})">Add to Cart</button></div>
- </article>`).join(""):`<div class="card" style="grid-column:1/-1"><h3>No products found</h3><p>Try another search or add a product from the dashboard.</p></div>`;
- document.getElementById("statProducts").textContent=products.filter(p=>p.visible).length;
- document.getElementById("cartCount").textContent=cart.reduce((a,x)=>a+x.qty,0);
-}
+function renderProducts(){const categories=["All Products","In-Game Currency","Digital Products","Other Stuff"];document.getElementById("filters").innerHTML=categories.map(c=>`<button class="filter ${activeCategory===c?"active":""}" onclick="activeCategory='${c}';renderProducts()">${c}</button>`).join("");const q=(document.getElementById("search")?.value||"").toLowerCase();const list=products.filter(p=>p.visible&&(activeCategory==="All Products"||p.category===activeCategory)&&(p.name+" "+p.description).toLowerCase().includes(q));document.getElementById("productGrid").innerHTML=list.length?list.map(p=>`<article class="card"><div class="product-image">${escapeHtml(p.image||"✦")}</div><div class="meta"><span class="tag">${escapeHtml(p.category)}</span><span class="price">${money(p.price)}</span></div><h3 style="margin-top:13px">${escapeHtml(p.name)}</h3><p>${escapeHtml(p.description)}</p><div class="card-actions"><button class="btn primary" onclick="addToCart('${String(p.id).replaceAll("'","\\'")}')">Add to Cart</button></div></article>`).join(""):`<div class="card" style="grid-column:1/-1"><h3>No products found</h3><p>Try another search or add a product from the dashboard.</p></div>`;document.getElementById("statProducts").textContent=products.filter(p=>p.visible).length;document.getElementById("cartCount").textContent=cart.reduce((a,x)=>a+x.qty,0)}
 function escapeHtml(s){return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
-function addToCart(id){let item=cart.find(x=>x.id===id);if(item)item.qty++;else cart.push({id,qty:1});renderProducts();openCart()}
+function addToCart(id){let item=cart.find(x=>String(x.id)===String(id));if(item)item.qty++;else cart.push({id,qty:1});renderProducts();openCart()}
 function openCart(){renderCart();document.getElementById("cartModal").classList.add("open")}
-function renderCart(){
- const box=document.getElementById("cartItems");
- if(!cart.length){box.innerHTML="<p>Your cart is empty.</p>";document.getElementById("cartTotal").textContent="$0.00";return}
- box.innerHTML=cart.map(x=>{let p=products.find(p=>p.id===x.id);return `<div class="cart-row"><div><strong>${escapeHtml(p.name)}</strong><div style="color:var(--muted)">${money(p.price)} each</div></div><div class="qty"><button class="btn small" onclick="changeQty(${p.id},-1)">−</button><span>${x.qty}</span><button class="btn small" onclick="changeQty(${p.id},1)">+</button></div></div>`}).join("");
- document.getElementById("cartTotal").textContent=money(cart.reduce((sum,x)=>sum+(products.find(p=>p.id===x.id).price*x.qty),0));
-}
-function changeQty(id,n){let x=cart.find(x=>x.id===id);x.qty+=n;if(x.qty<=0)cart=cart.filter(y=>y.id!==id);renderCart();renderProducts()}
-function checkout(){
- if(!cart.length)return alert("Your cart is empty.");
- const total=cart.reduce((sum,x)=>sum+(products.find(p=>p.id===x.id).price*x.qty),0);
- const order={id:"ET-"+Date.now().toString().slice(-6),customer:"Demo Customer",items:cart.map(x=>({name:products.find(p=>p.id===x.id).name,qty:x.qty})),total,payment:"Pending",fulfillment:"Pending"};
- orders.unshift(order);cart=[];persist();closeModal("cartModal");alert("Demo order created. In the production version, this button will open a real approved payment checkout.");renderProducts();
-}
+function renderCart(){const box=document.getElementById("cartItems");if(!cart.length){box.innerHTML="<p>Your cart is empty.</p>";document.getElementById("cartTotal").textContent="$0.00";return}box.innerHTML=cart.map(x=>{let p=products.find(p=>String(p.id)===String(x.id));return p?`<div class="cart-row"><div><strong>${escapeHtml(p.name)}</strong><div style="color:var(--muted)">${money(p.price)} each</div></div><div class="qty"><button class="btn small" onclick="changeQty('${x.id}',-1)">−</button><span>${x.qty}</span><button class="btn small" onclick="changeQty('${x.id}',1)">+</button></div></div>`:``}).join("");document.getElementById("cartTotal").textContent=money(cart.reduce((sum,x)=>{let p=products.find(p=>String(p.id)===String(x.id));return sum+(p?p.price*x.qty:0)},0))}
+function changeQty(id,n){let x=cart.find(x=>String(x.id)===String(id));if(!x)return;x.qty+=n;if(x.qty<=0)cart=cart.filter(y=>String(y.id)!==String(id));renderCart();renderProducts()}
+function checkout(){if(!cart.length)return alert("Your cart is empty.");const total=cart.reduce((sum,x)=>{let p=products.find(p=>String(p.id)===String(x.id));return sum+(p?p.price*x.qty:0)},0);const order={id:"ET-"+Date.now().toString().slice(-6),customer:"Demo Customer",items:cart.map(x=>{let p=products.find(p=>String(p.id)===String(x.id));return{name:p?.name||"Product",qty:x.qty}}),total,payment:"Pending",fulfillment:"Pending"};orders.unshift(order);cart=[];persist();closeModal("cartModal");alert("Demo order created. Real payment processing still requires a secure payment provider and backend verification.");renderProducts()}
 function closeModal(id){document.getElementById(id).classList.remove("open")}
 function backdropClose(e,id){if(e.target.id===id)closeModal(id)}
 function dashTab(id,btn){document.querySelectorAll(".dash-section").forEach(x=>x.classList.remove("active"));document.getElementById(id).classList.add("active");document.querySelectorAll(".side-btn").forEach(x=>x.classList.remove("active"));btn.classList.add("active")}
-function renderDashboard(){
- document.getElementById("dashProducts").textContent=products.length;
- document.getElementById("dashOrders").textContent=orders.length;
- document.getElementById("dashPaid").textContent=orders.filter(o=>o.payment==="Paid").length;
- document.getElementById("dashRevenue").textContent=money(orders.filter(o=>o.payment==="Paid").reduce((a,o)=>a+o.total,0));
- document.getElementById("productTable").innerHTML=products.map(p=>`<tr><td><strong>${escapeHtml(p.name)}</strong></td><td>${p.category}</td><td>${money(p.price)}</td><td>${p.stock}</td><td>${p.visible?"Yes":"No"}</td><td><button class="btn small" onclick="editProduct(${p.id})">Edit</button> <button class="btn small danger" onclick="deleteProduct(${p.id})">Delete</button></td></tr>`).join("");
- document.getElementById("orderTable").innerHTML=orders.length?orders.map(o=>`<tr><td>${o.id}</td><td>${escapeHtml(o.customer)}</td><td>${o.items.map(i=>escapeHtml(i.name)+" × "+i.qty).join("<br>")}</td><td>${money(o.total)}</td><td><select onchange="updateOrder('${o.id}','payment',this.value)"><option ${o.payment==="Pending"?"selected":""}>Pending</option><option ${o.payment==="Paid"?"selected":""}>Paid</option><option ${o.payment==="Cancelled"?"selected":""}>Cancelled</option></select></td><td><select onchange="updateOrder('${o.id}','fulfillment',this.value)"><option ${o.fulfillment==="Pending"?"selected":""}>Pending</option><option ${o.fulfillment==="Fulfilled"?"selected":""}>Fulfilled</option></select></td></tr>`).join(""):`<tr><td colspan="6">No orders yet.</td></tr>`;
- document.getElementById("venmoSetting").value=settings.venmo||"";document.getElementById("cryptoSetting").value=settings.crypto||"";document.getElementById("paymentInstructions").value=settings.instructions||"";document.getElementById("supportEmail").value=settings.email||"";document.getElementById("announcement").value=settings.announcement||"";
-}
-function openProductModal(p=null){
- document.getElementById("productModalTitle").textContent=p?"Edit Product":"Add Product";document.getElementById("editId").value=p?p.id:"";document.getElementById("pName").value=p?.name||"";document.getElementById("pPrice").value=p?.price||"";document.getElementById("pCategory").value=p?.category||"In-Game Currency";document.getElementById("pStock").value=p?.stock??999;document.getElementById("pImage").value=p?.image||"✦";document.getElementById("pDescription").value=p?.description||"";document.getElementById("productModal").classList.add("open");
-}
-function editProduct(id){openProductModal(products.find(p=>p.id===id))}
-function saveProduct(){
- const id=document.getElementById("editId").value;const data={name:document.getElementById("pName").value.trim(),price:Number(document.getElementById("pPrice").value||0),category:document.getElementById("pCategory").value,stock:Number(document.getElementById("pStock").value||0),image:document.getElementById("pImage").value||"✦",description:document.getElementById("pDescription").value.trim(),visible:true};
- if(!data.name)return alert("Enter a product name.");
- if(id){let index=products.findIndex(p=>p.id==id);data.id=Number(id);data.visible=products[index].visible;products[index]=data}else{data.id=Date.now();products.push(data)}
- persist();closeModal("productModal");renderDashboard();renderProducts();
-}
-function deleteProduct(id){if(confirm("Delete this product?")){products=products.filter(p=>p.id!==id);persist();renderDashboard();renderProducts()}}
+function renderDashboard(){document.getElementById("dashProducts").textContent=products.length;document.getElementById("dashOrders").textContent=orders.length;document.getElementById("dashPaid").textContent=orders.filter(o=>o.payment==="Paid").length;document.getElementById("dashRevenue").textContent=money(orders.filter(o=>o.payment==="Paid").reduce((a,o)=>a+o.total,0));document.getElementById("productTable").innerHTML=products.map(p=>`<tr><td><strong>${escapeHtml(p.name)}</strong></td><td>${escapeHtml(p.category)}</td><td>${money(p.price)}</td><td>${p.stock}</td><td>${p.visible?"Yes":"No"}</td><td><button class="btn small" onclick="editProduct('${p.id}')">Edit</button> <button class="btn small danger" onclick="deleteProduct('${p.id}')">Delete</button></td></tr>`).join("");document.getElementById("orderTable").innerHTML=orders.length?orders.map(o=>`<tr><td>${escapeHtml(o.id)}</td><td>${escapeHtml(o.customer)}</td><td>${o.items.map(i=>escapeHtml(i.name)+" × "+i.qty).join("<br>")}</td><td>${money(o.total)}</td><td><select onchange="updateOrder('${o.id}','payment',this.value)"><option ${o.payment==="Pending"?"selected":""}>Pending</option><option ${o.payment==="Paid"?"selected":""}>Paid</option><option ${o.payment==="Cancelled"?"selected":""}>Cancelled</option></select></td><td><select onchange="updateOrder('${o.id}','fulfillment',this.value)"><option ${o.fulfillment==="Pending"?"selected":""}>Pending</option><option ${o.fulfillment==="Fulfilled"?"selected":""}>Fulfilled</option></select></td></tr>`).join(""):`<tr><td colspan="6">No orders yet.</td></tr>`;document.getElementById("venmoSetting").value=settings.venmo||"";document.getElementById("cryptoSetting").value=settings.crypto||"";document.getElementById("paymentInstructions").value=settings.instructions||"";document.getElementById("supportEmail").value=settings.email||"";document.getElementById("announcement").value=settings.announcement||""}
+function openProductModal(p=null){document.getElementById("productModalTitle").textContent=p?"Edit Product":"Add Product";document.getElementById("editId").value=p?p.id:"";document.getElementById("pName").value=p?.name||"";document.getElementById("pPrice").value=p?.price||"";document.getElementById("pCategory").value=p?.category||"In-Game Currency";document.getElementById("pStock").value=p?.stock??999;document.getElementById("pImage").value=p?.image||"✦";document.getElementById("pDescription").value=p?.description||"";document.getElementById("productModal").classList.add("open")}
+function editProduct(id){openProductModal(products.find(p=>String(p.id)===String(id)))}
+function saveProduct(){const id=document.getElementById("editId").value;const data={name:document.getElementById("pName").value.trim(),price:Number(document.getElementById("pPrice").value||0),category:document.getElementById("pCategory").value,stock:Number(document.getElementById("pStock").value||0),image:document.getElementById("pImage").value||"✦",description:document.getElementById("pDescription").value.trim(),visible:true};if(!data.name)return alert("Enter a product name.");if(id){let index=products.findIndex(p=>String(p.id)===String(id));data.id=products[index].id;data.visible=products[index].visible;products[index]=data}else{data.id="local-"+Date.now();products.push(data)}persist();closeModal("productModal");renderDashboard();renderProducts()}
+function deleteProduct(id){if(confirm("Delete this product?")){products=products.filter(p=>String(p.id)!==String(id));persist();renderDashboard();renderProducts()}}
 function updateOrder(id,key,value){let o=orders.find(o=>o.id===id);if(o)o[key]=value;persist();renderDashboard()}
 function saveSettings(){settings={venmo:document.getElementById("venmoSetting").value,crypto:document.getElementById("cryptoSetting").value,instructions:document.getElementById("paymentInstructions").value,email:document.getElementById("supportEmail").value,announcement:document.getElementById("announcement").value};persist();alert("Settings saved in this browser.")}
-renderProducts();
+renderProducts();loadSupabaseProducts();
 </script>
 </body>
 </html>
